@@ -63,6 +63,9 @@ let physicalStructProvider = ([initialNodes, initialContainers]) => {
     let nodes = _.map(initialNodes, _.cloneDeep);
     let root = [];
 
+    let curdate = new Date();
+    let curseconds = curdate.getTime() / 1000;
+
     let addContainer = (container) => {
             var cloned = Object.assign({}, container);
             let NodeID = cloned.NodeID;
@@ -70,7 +73,16 @@ let physicalStructProvider = ([initialNodes, initialContainers]) => {
                 var node = _.find(cluster.children, { ID: NodeID });
                 if (!node) return;
                 var dt = new Date(cloned.UpdatedAt);
-                var color = stringToColor(cloned.ServiceID);
+		var seconds = dt.getTime() / 1000;
+                //var color = stringToColor(cloned.ServiceID);
+
+		let color = "green";
+
+		if ((curseconds - seconds) < (60 * 5)) {
+			color = "red";
+			} else if ((curseconds - seconds) < (60 * 15)) {
+				color = "yellow";
+			} 
                 let serviceName = cloned.ServiceName;
                 let imageNameRegex = /([^/]+?)(\:([^/]+))?$/;
                 let imageNameMatches = imageNameRegex.exec(cloned.Spec.ContainerSpec.Image);
@@ -81,14 +93,11 @@ let physicalStructProvider = ([initialNodes, initialContainers]) => {
 
 
 
-                let imageTag = "<div style='height: 100%; padding: 5px 5px 5px 5px; border: 2px solid " + color + "'>" +
+                let imageTag = "<div style='height: 100%; padding: 5px 5px 5px 5px; line-height: 14px; border: 4px solid " + color + "'>" +
                     "<span class='contname' style='color: white; font-weight: bold;font-size: 12px'>" + serviceName + "</span>" +
                     "<br/> image : " + imageNameMatches[0] +
-                    "<br/> tag : " + (tagName ? tagName : "latest") +
-                    "<br/>" + (cloned.Spec.ContainerSpec.Args ? " cmd : " + cloned.Spec.ContainerSpec.Args + "<br/>" : "") +
+                    "<br/>" + 
                     " updated : " + dateStamp +
-                    "<br/>" + cloned.Status.ContainerStatus.ContainerID +
-                    "<br/> state : " + startState +
                     "</div>";
 
                 if (node.Spec.Role == 'manager') {
